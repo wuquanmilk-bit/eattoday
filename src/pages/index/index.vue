@@ -340,7 +340,11 @@ export default {
 
 /* 标题/日期居中区域 */
 .header-section {
-    text-align: center;
+    /* 核心修复：强制容器使用 Flex 布局并居中内容 */
+    display: flex; /* 使用 Flex 布局 */
+    flex-direction: column; /* 垂直排列 h1 和日期 */
+    align-items: center; /* 水平居中所有子元素 */
+    
     margin-bottom: 20px;
 }
 .h1 { 
@@ -348,14 +352,15 @@ export default {
     font-weight: 700; 
     color: #ff69b4; 
     margin-bottom: 5px; 
-    text-align: center; 
+    /* 移除之前的 text-align: center;，依赖父元素的 align-items: center; */
 }
 .current-date { 
     font-size: 14px; 
     color: #666; 
     margin-bottom: 10px; 
-    text-align: center; 
+    /* 移除之前的 text-align: center; */
 }
+
 
 /* 顶部控制条样式 */
 .top-control-bar {
