@@ -1,0 +1,16 @@
+{
+  "name": "what-to-eat-app",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build"
+  },
+  "dependencies": {
+    "pinia": "^2.3.1",
+    "vue": "^3.3.4"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^4.2.3",
+    "vite": "^5.4.21"
+  }
+}
