@@ -20,6 +20,10 @@
         </view>
         
         <view class="plan-buttons-inline">
+            <button class="total-history-btn-inline"
+                    @click="goToHistory">
+                📅 历史
+            </button>
             <button class="total-menu-btn-inline" 
                     @click="showTotalMenu = true"
                     :disabled="!hasPlannedFood">
@@ -173,7 +177,6 @@
 </template>
 
 <script>
-// (保持 script 部分不变)
 import { useFoodStore } from '../../stores/food'
 
 export default {
@@ -315,13 +318,18 @@ export default {
       this.shoppingList = []
       uni.showToast({ title: '今日计划与历史记录已重置', icon: 'success' });
     },
+    
+    // 跳转到历史记录页面
+    goToHistory() {
+        uni.navigateTo({
+            url: '/pages/history/history' 
+        });
+    }
   }
 }
 </script>
 
 <style>
-/* (样式部分：只需要对总菜单模态框的样式进行微调，以确保换行。) */
-
 /* 容器和基础样式 */
 .container {
   max-width: 420px; 
@@ -406,7 +414,7 @@ export default {
     display: flex;
     gap: 5px;
 }
-.total-menu-btn-inline, .total-shopping-btn-inline {
+.total-menu-btn-inline, .total-shopping-btn-inline, .total-history-btn-inline {
     font-size: 11px;
     padding: 3px 8px;
     border-radius: 15px;
@@ -414,6 +422,10 @@ export default {
     height: 25px;
     margin: 0;
     white-space: nowrap; 
+}
+.total-history-btn-inline {
+    background: #00bcd4; /* 青色，代表时间或日历 */
+    color: white;
 }
 .total-menu-btn-inline {
     background: #1e90ff;
@@ -423,7 +435,7 @@ export default {
     background: #ff9800;
     color: white;
 }
-.total-menu-btn-inline[disabled], .total-shopping-btn-inline[disabled] {
+.total-menu-btn-inline[disabled], .total-shopping-btn-inline[disabled], .total-history-btn-inline[disabled] {
     background: #ccc;
     color: #999;
 }
@@ -482,20 +494,26 @@ export default {
 .tabs button[disabled] { background: #eee; color: #999; }
 
 
-/* 菜品卡片样式 (省略未修改部分) */
-.card-wrapper { position: relative; min-height: 300px; }
+/* 菜品卡片样式 */
+.card-wrapper {
+    position: relative;
+    min-height: 300px; 
+}
 .card {
-    position: relative; margin-bottom: 15px; display: flex;
-    flex-direction: column; justify-content: center; min-height: 250px; 
-    background: white; border-radius: 15px; box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+    position: relative; 
+    margin-bottom: 15px; 
+    display: flex;
+    flex-direction: column; justify-content: center;
+    min-height: 250px; background: white; border-radius: 15px; box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
     padding: 20px; text-align: center;
 }
 .food-name { font-size: 28px; font-weight: bold; color: #333; margin-bottom: 15px; transition: color 0.3s; }
 .shuffling-card .food-name { color: #ff69b4; animation: blink 1s step-end infinite; }
 @keyframes blink { 50% { opacity: 0.5; } }
+
 .nutrition-indicators {
-    display: flex; justify-content: space-around; padding: 10px 0; 
-    border-top: 1px solid #eee; border-bottom: 1px solid #eee; margin-bottom: 15px;
+    display: flex; justify-content: space-around;
+    padding: 10px 0; border-top: 1px solid #eee; border-bottom: 1px solid #eee; margin-bottom: 15px;
 }
 .indicator-item { text-align: center; flex: 1; }
 .icon-label { font-size: 12px; color: #999; margin-bottom: 5px; }
@@ -505,14 +523,25 @@ export default {
 .materials-item { font-size: 13px; color: #666; margin: 3px 5px; background: #f5f5f5; padding: 2px 6px; border-radius: 4px; }
 
 
-/* 按钮组样式 (省略未修改部分) */
-.btn-group { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; margin-top: 20px; }
+/* 按钮组样式 */
+.btn-group {
+  display: flex;
+  flex-wrap: wrap; 
+  justify-content: space-between;
+  gap: 8px; 
+  margin-top: 20px;
+}
 .btn-group button {
-  flex: 1 1 48%; border: none; padding: 12px 0; border-radius: 10px;
-  color: white; font-size: 13px; font-weight: bold; transition: transform 0.1s ease; line-height: normal;
+  flex: 1 1 48%; 
+  border: none; padding: 12px 0; border-radius: 10px;
+  color: white; font-size: 13px; 
+  font-weight: bold; transition: transform 0.1s ease;
+  line-height: normal;
 }
 .btn-group button:active { transform: scale(0.98); }
 .btn-group button[disabled] { background: #ccc !important; }
+
+/* 按钮颜色 */
 .btn-group .pick { background: #4caf50; } 
 .btn-group .add-to-plan { background: #1e90ff; } 
 .btn-group .shopping { background: #ff9800; } 
@@ -531,13 +560,28 @@ export default {
   overflow-y: auto; 
 }
 .shopping-modal .h3 { font-size: 18px; font-weight: bold; color: #ff69b4; margin-bottom: 10px; }
+.shopping-modal .materials-list { justify-content: flex-start; margin-bottom: 15px; }
+.shopping-modal .materials-item { margin: 5px 0; background: #eee; padding: 4px 8px; border-radius: 4px; }
+
+/* 总清单特殊样式 */
+.total-list {
+    flex-direction: column; 
+    align-items: flex-start;
+}
+.total-list .materials-item {
+    width: 100%; 
+}
+.no-data {
+    color: #999;
+    padding: 20px;
+    text-align: center;
+}
 .close-modal { 
     background: #ff69b4; color: white; border: none; padding: 8px 15px; 
     border-radius: 5px; font-size: 14px; width: 100%; margin-top: 15px;
 }
 
-
-/* 总菜单样式 - 确保餐次标题独占一行 */
+/* 总菜单样式 */
 .total-menu-content {
     padding: 10px 0;
 }
@@ -552,12 +596,8 @@ export default {
     font-weight: bold;
     color: #1e90ff;
     margin-bottom: 5px;
-    /* 核心修改：确保标题是块级元素，独占一行 */
     display: block; 
     width: 100%; 
-}
-.food-list-block {
-    /* 菜品列表，在标题下方 */
 }
 .plan-food-item {
     font-size: 15px;
@@ -573,12 +613,4 @@ export default {
     font-size: 14px;
     color: #999;
 }
-
-
-/* 总清单特殊样式 (省略未修改部分) */
-.shopping-modal .materials-list { justify-content: flex-start; margin-bottom: 15px; }
-.shopping-modal .materials-item { margin: 5px 0; background: #eee; padding: 4px 8px; border-radius: 4px; }
-.total-list { flex-direction: column; align-items: flex-start; }
-.total-list .materials-item { width: 100%; }
-.no-data { color: #999; padding: 20px; text-align: center; }
 </style>
