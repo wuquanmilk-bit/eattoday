@@ -20,10 +20,20 @@
         </view>
         
         <view class="plan-buttons-inline">
+            <button class="total-history-btn-inline"
+                    @click="goToHistory">
+                📅 历史
+            </button>
             <button class="total-menu-btn-inline" 
                     @click="showTotalMenu = true"
                     :disabled="!hasPlannedFood">
                 👀 总菜单
+            </button>
+            
+            <button class="total-shopping-btn-inline" 
+                    @click="showTotalShoppingList = true"
+                    :disabled="!hasPlannedFood">
+                🛒 总清单
             </button>
         </view>
     </view>
@@ -40,7 +50,7 @@
                  </view>
             </view>
             <view v-else class="plan-dish-empty">
-                {{ current === 'breakfast' ? '点个元气满满的早餐' : '吃好每一餐...' }}
+                {{ current === 'breakfast' ? '点个元气满满的早餐吧' : '待选...' }}
             </view>
         </view>
     </view>
@@ -105,7 +115,7 @@
       </transition-group>
     </view>
 
-    <view class="btn-group main-actions">
+    <view class="btn-group">
       <button class="pick" @click="pickFood" :disabled="isShuffling || !foodStore.menu[current] || foodStore.menu[current].length < dinerCount">
         <view v-if="isShuffling">⏳ 随机中...</view>
         <view v-else>🎲 随机 {{ dinerCount }} 个</view>
@@ -114,33 +124,12 @@
       <button class="add-to-plan" @click="addToPlan" :disabled="isShuffling || pickedFoods.length === 0">
         ✔️ 选定今日菜品 ({{ pickedFoods.length }} 道)
       </button>
-    </view>
-
-    <view class="btn-group list-actions">
+      
       <button class="shopping" @click="generateShoppingList" :disabled="isShuffling || pickedFoods.length === 0">🛒 本次清单</button>
       
-      <button class="total-shopping-btn" 
-              @click="showTotalShoppingList = true"
-              :disabled="isShuffling || !hasPlannedFood">
-          🛒 总清单
-      </button>
+      <button class="clear-history" @click="clearHistory" :disabled="isShuffling && foodStore.history.length === 0 && !hasPlannedFood">🗑️ 重置今日</button>
     </view>
-    
-    <view class="btn-group aux-actions">
-        <view class="aux-control-box">
-            <button class="save-plan-btn-compact" @click="manualSave" :disabled="!hasPlannedFood">💾 存档</button>
-            <button class="total-history-btn-compact" @click="goToHistory">📅 历史</button>
-        </view>
-        
-        <view class="spacer"></view>
-    </view>
-    
-    <view class="btn-group reset-actions">
-        <view class="spacer"></view>
-        <button class="clear-history" @click="confirmClearAllData" :disabled="isShuffling && foodStore.dailyMenuHistory.length === 0 && !hasPlannedFood">
-            ⚠️ 重置所有数据
-        </button>
-    </view>
+
     <view class="shopping-modal-overlay" v-if="shoppingList.length" @click="shoppingList=[]">
       <view class="shopping-modal" @click.stop>
         <view class="h3">🛒 **本次随机菜品** 购买清单</view>
@@ -322,41 +311,15 @@ export default {
       const uniqueMaterials = [...new Set(materials)];
       this.shoppingList = uniqueMaterials;
     },
-
-    // 手动存档方法
-    manualSave() {
-        if (!this.hasPlannedFood) {
-            uni.showToast({ title: '今日菜单为空，无法存档', icon: 'none' });
-            return;
-        }
-        this.foodStore.saveDailyPlanToHistory();
-        uni.showToast({ title: '今日菜单已手动存档', icon: 'success' });
-    },
-
-    // 确认重置所有数据弹窗
-    confirmClearAllData() { 
-        const that = this;
-        uni.showModal({
-            title: '⚠️ 确认重置所有数据',
-            content: '您确定要清空**所有历史菜单、今日计划和最近抽取记录**吗？此操作不可撤销！',
-            confirmText: '确认清空',
-            cancelText: '取消',
-            success: function (res) {
-                if (res.confirm) {
-                    that.clearAllData(); 
-                }
-            }
-        });
-    },
     
-    // 重置所有数据逻辑
-    clearAllData() { 
-      this.foodStore.clearAllData() 
+    clearHistory() {
+      this.foodStore.clearHistory() 
       this.pickedFoods = []
       this.shoppingList = []
-      uni.showToast({ title: '所有数据已清空', icon: 'success' });
+      uni.showToast({ title: '今日计划与历史记录已重置', icon: 'success' });
     },
     
+    // 跳转到历史记录页面
     goToHistory() {
         uni.navigateTo({
             url: '/pages/history/history' 
@@ -377,9 +340,10 @@ export default {
 
 /* 标题/日期居中区域 */
 .header-section {
-    display: flex; 
-    flex-direction: column; 
-    align-items: center; 
+    /* 核心修复：强制容器使用 Flex 布局并居中内容 */
+    display: flex; /* 使用 Flex 布局 */
+    flex-direction: column; /* 垂直排列 h1 和日期 */
+    align-items: center; /* 水平居中所有子元素 */
     
     margin-bottom: 20px;
 }
@@ -388,11 +352,13 @@ export default {
     font-weight: 700; 
     color: #ff69b4; 
     margin-bottom: 5px; 
+    /* 移除之前的 text-align: center;，依赖父元素的 align-items: center; */
 }
 .current-date { 
     font-size: 14px; 
     color: #666; 
     margin-bottom: 10px; 
+    /* 移除之前的 text-align: center; */
 }
 
 
@@ -448,12 +414,12 @@ export default {
     color: #999;
 }
 
-/* 总菜单按钮 (右侧，顶部唯一按钮) */
+/* 总菜单和总清单按钮 (右侧) */
 .plan-buttons-inline {
     display: flex;
     gap: 5px;
 }
-.total-menu-btn-inline {
+.total-menu-btn-inline, .total-shopping-btn-inline, .total-history-btn-inline {
     font-size: 11px;
     padding: 3px 8px;
     border-radius: 15px;
@@ -461,10 +427,20 @@ export default {
     height: 25px;
     margin: 0;
     white-space: nowrap; 
+}
+.total-history-btn-inline {
+    background: #00bcd4; /* 青色，代表时间或日历 */
+    color: white;
+}
+.total-menu-btn-inline {
     background: #1e90ff;
     color: white;
 }
-.total-menu-btn-inline[disabled] {
+.total-shopping-btn-inline {
+    background: #ff9800;
+    color: white;
+}
+.total-menu-btn-inline[disabled], .total-shopping-btn-inline[disabled], .total-history-btn-inline[disabled] {
     background: #ccc;
     color: #999;
 }
@@ -552,18 +528,13 @@ export default {
 .materials-item { font-size: 13px; color: #666; margin: 3px 5px; background: #f5f5f5; padding: 2px 6px; border-radius: 4px; }
 
 
-/* 【底部按钮组样式】 */
-
-/* 按钮组样式 - 用于两列按钮 (Row 1 & 2) */
+/* 按钮组样式 */
 .btn-group {
   display: flex;
   flex-wrap: wrap; 
   justify-content: space-between;
   gap: 8px; 
-  margin-top: 10px; 
-}
-.btn-group.main-actions {
-    margin-top: 20px; /* 调整与卡片区的距离 */
+  margin-top: 20px;
 }
 .btn-group button {
   flex: 1 1 48%; 
@@ -579,46 +550,7 @@ export default {
 .btn-group .pick { background: #4caf50; } 
 .btn-group .add-to-plan { background: #1e90ff; } 
 .btn-group .shopping { background: #ff9800; } 
-.btn-group .total-shopping-btn { background: #ff9800; } 
-
-
-/* 【新增样式】存档和历史按钮所在行 (Row 3) */
-.btn-group.aux-actions {
-    margin-top: 10px;
-}
-
-/* 左侧 50% 的容器，内部包含存档和历史 */
-.aux-control-box {
-    flex: 1 1 48%; /* 占据左侧约 50% 空间，与 .shopping 宽度一致 */
-    display: flex;
-    gap: 8px; /* 两个小按钮之间的间距 */
-}
-.aux-control-box button {
-    flex: 1 1 0; /* 在 aux-control-box 内部平分空间 */
-    /* 继承 .btn-group button 的样式，无需重复 padding */
-}
-.save-plan-btn-compact { 
-    background: #008000; /* 绿色 */
-} 
-.total-history-btn-compact { 
-    background: #00bcd4; /* 青色 */
-}
-
-/* 【重置样式】重置按钮所在行 (Row 4) */
-.btn-group.reset-actions {
-    margin-top: 10px;
-    margin-bottom: 20px;
-}
-.btn-group.reset-actions .spacer {
-    /* 左侧占位符，撑开空间 */
-    flex: 1 1 48%; 
-}
-.btn-group.reset-actions .clear-history {
-    /* 继承了 .btn-group button 的 flex: 1 1 48% */
-    background: #f44336; 
-    color: white; 
-    /* 继承通用按钮样式 */
-}
+.btn-group .clear-history { background: #f44336; } 
 
 /* 模态框通用样式 */
 .shopping-modal-overlay {
