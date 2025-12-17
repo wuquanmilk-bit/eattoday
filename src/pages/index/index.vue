@@ -20,6 +20,10 @@
         </view>
         
         <view class="plan-buttons-inline">
+            <button class="total-history-btn-inline"
+                    @click="goToHistory">
+                📅 历史
+            </button>
             <button class="total-menu-btn-inline" 
                     @click="showTotalMenu = true"
                     :disabled="!hasPlannedFood">
@@ -124,6 +128,8 @@
       <button class="shopping" @click="generateShoppingList" :disabled="isShuffling || pickedFoods.length === 0">🛒 本次清单</button>
       
       <button class="clear-history" @click="clearHistory" :disabled="isShuffling && foodStore.history.length === 0 && !hasPlannedFood">🗑️ 重置今日</button>
+
+      <button class="mall-btn" @click="showMallModal = true" :disabled="isShuffling">🏬 去商场吃什么？</button>
     </view>
 
     <view class="shopping-modal-overlay" v-if="shoppingList.length" @click="shoppingList=[]">
@@ -169,6 +175,24 @@
         <button class="close-modal" @click="showTotalShoppingList=false">关闭</button>
       </view>
     </view>
+
+    <view class="shopping-modal-overlay" v-if="showMallModal" @click="showMallModal = false">
+      <view class="shopping-modal mall-modal" @click.stop>
+        <view class="h3" style="color: #9c27b0; text-align: center;">🏬 附近的餐饮店</view>
+        
+        <view class="mall-display-area">
+            <view v-if="mallResult" class="mall-result-text">{{ mallResult }}</view>
+            <view v-else class="mall-placeholder-text">今天在商场换换口味？</view>
+        </view>
+
+        <button class="pick mall-pick-btn" @click="pickMallShop" :disabled="isMallShuffling">
+            {{ isMallShuffling ? '正在挑选餐厅...' : '🎲 随机一家店' }}
+        </button>
+        
+        <button class="close-modal" @click="showMallModal = false" style="background: #999; margin-top: 10px;">返回</button>
+      </view>
+    </view>
+
   </view>
 </template>
 
@@ -195,7 +219,15 @@ export default {
       currentDate: '', 
       showTotalShoppingList: false,
       showTotalMenu: false,
-      dinerCount: 1, 
+      dinerCount: 1,
+      // 新增：商场模式相关数据
+      showMallModal: false,
+      isMallShuffling: false,
+      mallResult: '',
+      mallShops: [
+          '肯德基', '麦当劳', '海底捞', '太二酸菜鱼', '萨莉亚', '外婆家', 
+          '西贝莜面村', '必胜客', '汉堡王', '费大厨辣椒炒肉', '茶颜悦色', '喜茶'
+      ]
     }
   },
   computed: {
@@ -288,6 +320,21 @@ export default {
         }
       }, 100);
     },
+
+    // 新增：商场随机抽取逻辑
+    pickMallShop() {
+      if (this.isMallShuffling) return;
+      this.isMallShuffling = true;
+      let count = 0;
+      const timer = setInterval(() => {
+        this.mallResult = this.mallShops[Math.floor(Math.random() * this.mallShops.length)];
+        count++;
+        if (count > 15) {
+          clearInterval(timer);
+          this.isMallShuffling = false;
+        }
+      }, 80);
+    },
     
     switchTab(key) {
       this.current = key
@@ -313,9 +360,13 @@ export default {
       this.pickedFoods = []
       this.shoppingList = []
       uni.showToast({ title: '今日计划与历史记录已重置', icon: 'success' });
-    }
+    },
     
-    // goToHistory 方法已删除
+    goToHistory() {
+        uni.navigateTo({
+            url: '/pages/history/history' 
+        });
+    }
   }
 }
 </script>
@@ -329,31 +380,15 @@ export default {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
 }
 
-/* 标题/日期居中区域 */
 .header-section {
-    /* 核心修复：强制容器使用 Flex 布局并居中内容 */
-    display: flex; /* 使用 Flex 布局 */
-    flex-direction: column; /* 垂直排列 h1 和日期 */
-    align-items: center; /* 水平居中所有子元素 */
-    
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
     margin-bottom: 20px;
 }
-.h1 { 
-    font-size: 28px; 
-    font-weight: 700; 
-    color: #ff69b4; 
-    margin-bottom: 5px; 
-    /* 移除之前的 text-align: center;，依赖父元素的 align-items: center; */
-}
-.current-date { 
-    font-size: 14px; 
-    color: #666; 
-    margin-bottom: 10px; 
-    /* 移除之前的 text-align: center; */
-}
+.h1 { font-size: 28px; font-weight: 700; color: #ff69b4; margin-bottom: 5px; }
+.current-date { font-size: 14px; color: #666; margin-bottom: 10px; }
 
-
-/* 顶部控制条样式 */
 .top-control-bar {
     display: flex;
     justify-content: space-between;
@@ -363,7 +398,6 @@ export default {
     border-bottom: 1px solid #f0f0f0;
 }
 
-/* 用餐人数 (左侧) */
 .diner-mode-selector-compact {
     display: flex;
     align-items: center;
@@ -399,18 +433,10 @@ export default {
     color: white;
     box-shadow: 0 1px 3px rgba(255, 105, 180, 0.5);
 }
-.mode-btn-compact[disabled] {
-    opacity: 0.5;
-    background: #eee;
-    color: #999;
-}
+.mode-btn-compact[disabled] { opacity: 0.5; background: #eee; color: #999; }
 
-/* 总菜单和总清单按钮 (右侧) */
-.plan-buttons-inline {
-    display: flex;
-    gap: 5px;
-}
-.total-menu-btn-inline, .total-shopping-btn-inline {
+.plan-buttons-inline { display: flex; gap: 5px; }
+.total-menu-btn-inline, .total-shopping-btn-inline, .total-history-btn-inline {
     font-size: 11px;
     padding: 3px 8px;
     border-radius: 15px;
@@ -419,22 +445,11 @@ export default {
     margin: 0;
     white-space: nowrap; 
 }
-/* total-history-btn-inline 样式已删除 */
-.total-menu-btn-inline {
-    background: #1e90ff;
-    color: white;
-}
-.total-shopping-btn-inline {
-    background: #ff9800;
-    color: white;
-}
-.total-menu-btn-inline[disabled], .total-shopping-btn-inline[disabled] {
-    background: #ccc;
-    color: #999;
-}
+.total-history-btn-inline { background: #00bcd4; color: white; }
+.total-menu-btn-inline { background: #1e90ff; color: white; }
+.total-shopping-btn-inline { background: #ff9800; color: white; }
+.total-menu-btn-inline[disabled], .total-shopping-btn-inline[disabled], .total-history-btn-inline[disabled] { background: #ccc; color: #999; }
 
-
-/* 今日计划区域样式 */
 .today-plan-section {
     background-color: #f7f7f7;
     padding: 10px 15px 15px 15px; 
@@ -442,43 +457,14 @@ export default {
     margin-bottom: 20px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
 }
-.h2-plan-title {
-    font-size: 16px; 
-    font-weight: bold;
-    color: #444;
-    margin-bottom: 8px; 
-    padding-top: 5px; 
-}
-.plan-list-single-meal {
-    background-color: white;
-    padding: 10px;
-    border-radius: 8px;
-    border: 1px solid #eee;
-    min-height: 40px; 
-}
-.plan-dish-item {
-    font-size: 14px;
-    font-weight: 500;
-    color: #333;
-    padding: 3px 0;
-    text-align: center;
-}
-.plan-dish-empty {
-    color: #999;
-    text-align: center;
-    padding: 5px 0;
-    font-size: 14px;
-}
+.h2-plan-title { font-size: 16px; font-weight: bold; color: #444; margin-bottom: 8px; padding-top: 5px; }
+.plan-list-single-meal { background-color: white; padding: 10px; border-radius: 8px; border: 1px solid #eee; min-height: 40px; }
+.plan-dish-item { font-size: 14px; font-weight: 500; color: #333; padding: 3px 0; text-align: center; }
+.plan-dish-empty { color: #999; text-align: center; padding: 5px 0; font-size: 14px; }
 
-
-/* Tabs 切换样式 */
-.tabs {
-  display: flex;
-  justify-content: center; gap: 10px; margin: 20px 0;
-}
+.tabs { display: flex; justify-content: center; gap: 10px; margin: 20px 0; }
 .tabs button {
-  flex: 1; 
-  border: none; padding: 8px 16px; border-radius: 20px;
+  flex: 1; border: none; padding: 8px 16px; border-radius: 20px;
   background: #ffd1dc; color: #333; transition: background 0.2s, transform 0.1s;
   line-height: normal; font-size: 14px;
 }
@@ -486,16 +472,9 @@ export default {
 .tabs button:active { transform: scale(0.98); }
 .tabs button[disabled] { background: #eee; color: #999; }
 
-
-/* 菜品卡片样式 */
-.card-wrapper {
-    position: relative;
-    min-height: 300px; 
-}
+.card-wrapper { position: relative; min-height: 300px; }
 .card {
-    position: relative; 
-    margin-bottom: 15px; 
-    display: flex;
+    position: relative; margin-bottom: 15px; display: flex;
     flex-direction: column; justify-content: center;
     min-height: 250px; background: white; border-radius: 15px; box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
     padding: 20px; text-align: center;
@@ -504,10 +483,7 @@ export default {
 .shuffling-card .food-name { color: #ff69b4; animation: blink 1s step-end infinite; }
 @keyframes blink { 50% { opacity: 0.5; } }
 
-.nutrition-indicators {
-    display: flex; justify-content: space-around;
-    padding: 10px 0; border-top: 1px solid #eee; border-bottom: 1px solid #eee; margin-bottom: 15px;
-}
+.nutrition-indicators { display: flex; justify-content: space-around; padding: 10px 0; border-top: 1px solid #eee; border-bottom: 1px solid #eee; margin-bottom: 15px; }
 .indicator-item { text-align: center; flex: 1; }
 .icon-label { font-size: 12px; color: #999; margin-bottom: 5px; }
 .icon-display { font-size: 18px; }
@@ -515,95 +491,41 @@ export default {
 .materials-list { display: flex; flex-wrap: wrap; justify-content: center; }
 .materials-item { font-size: 13px; color: #666; margin: 3px 5px; background: #f5f5f5; padding: 2px 6px; border-radius: 4px; }
 
-
-/* 按钮组样式 */
-.btn-group {
-  display: flex;
-  flex-wrap: wrap; 
-  justify-content: space-between;
-  gap: 8px; 
-  margin-top: 20px;
-}
-.btn-group button {
-  flex: 1 1 48%; 
-  border: none; padding: 12px 0; border-radius: 10px;
-  color: white; font-size: 13px; 
-  font-weight: bold; transition: transform 0.1s ease;
-  line-height: normal;
-}
+.btn-group { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; margin-top: 20px; }
+.btn-group button { flex: 1 1 48%; border: none; padding: 12px 0; border-radius: 10px; color: white; font-size: 13px; font-weight: bold; transition: transform 0.1s ease; line-height: normal; }
 .btn-group button:active { transform: scale(0.98); }
 .btn-group button[disabled] { background: #ccc !important; }
 
-/* 按钮颜色 */
 .btn-group .pick { background: #4caf50; } 
 .btn-group .add-to-plan { background: #1e90ff; } 
 .btn-group .shopping { background: #ff9800; } 
 .btn-group .clear-history { background: #f44336; } 
 
-/* 模态框通用样式 */
-.shopping-modal-overlay {
-  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0, 0, 0, 0.5); display: flex;
-  justify-content: center; align-items: center; z-index: 1000;
-}
-.shopping-modal {
-  background: white; padding: 20px; border-radius: 10px; max-width: 80%;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3); text-align: left;
-  max-height: 70vh; 
-  overflow-y: auto; 
-}
+/* 新增：商场入口按钮样式 */
+.btn-group .mall-btn { background: #9c27b0; flex: 1 1 100%; margin-top: 4px; }
+
+.shopping-modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.5); display: flex; justify-content: center; align-items: center; z-index: 1000; }
+.shopping-modal { background: white; padding: 20px; border-radius: 10px; max-width: 80%; box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3); text-align: left; max-height: 70vh; overflow-y: auto; }
 .shopping-modal .h3 { font-size: 18px; font-weight: bold; color: #ff69b4; margin-bottom: 10px; }
 .shopping-modal .materials-list { justify-content: flex-start; margin-bottom: 15px; }
 .shopping-modal .materials-item { margin: 5px 0; background: #eee; padding: 4px 8px; border-radius: 4px; }
 
-/* 总清单特殊样式 */
-.total-list {
-    flex-direction: column; 
-    align-items: flex-start;
-}
-.total-list .materials-item {
-    width: 100%; 
-}
-.no-data {
-    color: #999;
-    padding: 20px;
-    text-align: center;
-}
-.close-modal { 
-    background: #ff69b4; color: white; border: none; padding: 8px 15px; 
-    border-radius: 5px; font-size: 14px; width: 100%; margin-top: 15px;
-}
+/* 新增：商场弹窗内容样式 */
+.mall-modal { text-align: center; width: 300px; padding: 30px 20px; }
+.mall-display-area { height: 100px; display: flex; align-items: center; justify-content: center; margin: 20px 0; }
+.mall-result-text { font-size: 32px; font-weight: bold; color: #333; }
+.mall-placeholder-text { font-size: 16px; color: #999; }
+.mall-pick-btn { width: 100%; height: 45px; }
 
-/* 总菜单样式 */
-.total-menu-content {
-    padding: 10px 0;
-}
-.menu-type-block {
-    margin-bottom: 10px;
-    padding: 8px;
-    border-radius: 6px;
-    border: 1px solid #f0f0f0;
-}
-.menu-type-title {
-    font-size: 16px;
-    font-weight: bold;
-    color: #1e90ff;
-    margin-bottom: 5px;
-    display: block; 
-    width: 100%; 
-}
-.plan-food-item {
-    font-size: 15px;
-    color: #333;
-    padding: 2px 0;
-    font-weight: 500;
-}
-.plan-food-item .food-name-display {
-    display: block; 
-    padding: 2px 0;
-}
-.no-food {
-    font-size: 14px;
-    color: #999;
-}
+.total-list { flex-direction: column; align-items: flex-start; }
+.total-list .materials-item { width: 100%; }
+.no-data { color: #999; padding: 20px; text-align: center; }
+.close-modal { background: #ff69b4; color: white; border: none; padding: 8px 15px; border-radius: 5px; font-size: 14px; width: 100%; margin-top: 15px; }
+
+.total-menu-content { padding: 10px 0; }
+.menu-type-block { margin-bottom: 10px; padding: 8px; border-radius: 6px; border: 1px solid #f0f0f0; }
+.menu-type-title { font-size: 16px; font-weight: bold; color: #1e90ff; margin-bottom: 5px; display: block; width: 100%; }
+.plan-food-item { font-size: 15px; color: #333; padding: 2px 0; font-weight: 500; }
+.plan-food-item .food-name-display { display: block; padding: 2px 0; }
+.no-food { font-size: 14px; color: #999; }
 </style>
