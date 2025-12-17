@@ -7,7 +7,7 @@
     
     <view class="top-control-bar">
         <view class="diner-mode-selector-compact">
-            <view class="mode-title">👤 人数：</view>
+            <view class="mode-title"> 人数：</view>
             <view class="mode-options-compact">
                 <button v-for="n in 5" 
                         :key="n" 
@@ -23,13 +23,13 @@
             <button class="total-menu-btn-inline" 
                     @click="showTotalMenu = true"
                     :disabled="!hasPlannedFood">
-                👀 总菜单
+                 总菜单
             </button>
             
             <button class="total-shopping-btn-inline" 
                     @click="showTotalShoppingList = true"
                     :disabled="!hasPlannedFood">
-                🛒 总清单
+                 总清单
             </button>
         </view>
     </view>
