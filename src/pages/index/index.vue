@@ -30,12 +30,7 @@
                 👀 总菜单
             </button>
             
-            <button class="total-shopping-btn-inline" 
-                    @click="showTotalShoppingList = true"
-                    :disabled="!hasPlannedFood">
-                🛒 总清单
-            </button>
-        </view>
+            </view>
     </view>
 
     <view class="section-card today-plan-section">
@@ -115,7 +110,7 @@
       </transition-group>
     </view>
 
-    <view class="btn-group">
+    <view class="btn-group main-actions">
       <button class="pick" @click="pickFood" :disabled="isShuffling || !foodStore.menu[current] || foodStore.menu[current].length < dinerCount">
         <view v-if="isShuffling">⏳ 随机中...</view>
         <view v-else>🎲 随机 {{ dinerCount }} 个</view>
@@ -124,12 +119,23 @@
       <button class="add-to-plan" @click="addToPlan" :disabled="isShuffling || pickedFoods.length === 0">
         ✔️ 选定今日菜品 ({{ pickedFoods.length }} 道)
       </button>
-      
-      <button class="shopping" @click="generateShoppingList" :disabled="isShuffling || pickedFoods.length === 0">🛒 本次清单</button>
-      
-      <button class="clear-history" @click="clearHistory" :disabled="isShuffling && foodStore.history.length === 0 && !hasPlannedFood">🗑️ 重置今日</button>
     </view>
 
+    <view class="btn-group list-actions">
+      <button class="shopping" @click="generateShoppingList" :disabled="isShuffling || pickedFoods.length === 0">🛒 本次清单</button>
+      
+      <button class="total-shopping-btn" 
+              @click="showTotalShoppingList = true"
+              :disabled="isShuffling || !hasPlannedFood">
+          🛒 总清单
+      </button>
+    </view>
+    
+    <view class="btn-group-single-row">
+        <button class="clear-history" @click="clearHistory" :disabled="isShuffling && foodStore.history.length === 0 && !hasPlannedFood">
+            🗑️ 重置今日
+        </button>
+    </view>
     <view class="shopping-modal-overlay" v-if="shoppingList.length" @click="shoppingList=[]">
       <view class="shopping-modal" @click.stop>
         <view class="h3">🛒 **本次随机菜品** 购买清单</view>
@@ -341,9 +347,9 @@ export default {
 /* 标题/日期居中区域 */
 .header-section {
     /* 核心修复：强制容器使用 Flex 布局并居中内容 */
-    display: flex; /* 使用 Flex 布局 */
-    flex-direction: column; /* 垂直排列 h1 和日期 */
-    align-items: center; /* 水平居中所有子元素 */
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
     
     margin-bottom: 20px;
 }
@@ -352,13 +358,11 @@ export default {
     font-weight: 700; 
     color: #ff69b4; 
     margin-bottom: 5px; 
-    /* 移除之前的 text-align: center;，依赖父元素的 align-items: center; */
 }
 .current-date { 
     font-size: 14px; 
     color: #666; 
     margin-bottom: 10px; 
-    /* 移除之前的 text-align: center; */
 }
 
 
@@ -419,7 +423,7 @@ export default {
     display: flex;
     gap: 5px;
 }
-.total-menu-btn-inline, .total-shopping-btn-inline, .total-history-btn-inline {
+.total-menu-btn-inline, .total-history-btn-inline {
     font-size: 11px;
     padding: 3px 8px;
     border-radius: 15px;
@@ -436,11 +440,11 @@ export default {
     background: #1e90ff;
     color: white;
 }
-.total-shopping-btn-inline {
-    background: #ff9800;
-    color: white;
-}
-.total-menu-btn-inline[disabled], .total-shopping-btn-inline[disabled], .total-history-btn-inline[disabled] {
+
+/* 移除 .total-shopping-btn-inline 的颜色定义，因为按钮已移动 */
+/* .total-shopping-btn-inline { background: #ff9800; color: white; } */
+
+.total-menu-btn-inline[disabled], .total-history-btn-inline[disabled] {
     background: #ccc;
     color: #999;
 }
@@ -528,13 +532,18 @@ export default {
 .materials-item { font-size: 13px; color: #666; margin: 3px 5px; background: #f5f5f5; padding: 2px 6px; border-radius: 4px; }
 
 
-/* 按钮组样式 */
+/* 【修改：底部按钮组样式】 */
+
+/* 按钮组样式 - 用于两列按钮 (Row 1 & 2) */
 .btn-group {
   display: flex;
   flex-wrap: wrap; 
   justify-content: space-between;
   gap: 8px; 
-  margin-top: 20px;
+  margin-top: 10px; 
+}
+.btn-group.main-actions {
+    margin-top: 20px; /* 调整与卡片区的距离 */
 }
 .btn-group button {
   flex: 1 1 48%; 
@@ -550,7 +559,29 @@ export default {
 .btn-group .pick { background: #4caf50; } 
 .btn-group .add-to-plan { background: #1e90ff; } 
 .btn-group .shopping { background: #ff9800; } 
-.btn-group .clear-history { background: #f44336; } 
+.btn-group .total-shopping-btn { background: #ff9800; } /* 移动后的总清单按钮颜色 */
+
+
+/* 【新增样式】按钮组 - 单行居中（重置按钮） */
+.btn-group-single-row {
+    display: flex;
+    justify-content: center; /* 居中按钮 */
+    margin-top: 10px; 
+    margin-bottom: 20px;
+}
+.btn-group-single-row button {
+    flex-basis: 98%; 
+    max-width: 300px; /* 设置最大宽度以避免过宽 */
+    border: none; padding: 12px 0; border-radius: 10px;
+    color: white; font-size: 14px; 
+    font-weight: bold; transition: transform 0.1s ease;
+    line-height: normal;
+}
+.btn-group-single-row button:active { transform: scale(0.98); } 
+.btn-group-single-row button[disabled] { background: #ccc !important; }
+
+.btn-group-single-row .clear-history { background: #f44336; } 
+
 
 /* 模态框通用样式 */
 .shopping-modal-overlay {
