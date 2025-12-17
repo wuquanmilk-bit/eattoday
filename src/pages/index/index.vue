@@ -293,14 +293,14 @@ export default {
 .container { max-width: 420px; margin: 0 auto; padding: 0 15px 30px; }
 .header-section { display: flex; flex-direction: column; align-items: center; margin-bottom: 20px; }
 .h1 { font-size: 28px; font-weight: 700; color: #ff69b4; margin-bottom: 5px; }
-.current-date { font-size: 14px; color: #666; margin-bottom: 10px; }
-.top-control-bar { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #f0f0f0; margin-bottom: 15px; }
+.current-date { font-size: 14px; color: #666; margin-bottom: 15px; }
+.top-control-bar { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid #f0f0f0; margin-bottom: 15px; }
 .diner-mode-selector-compact { display: flex; align-items: center; gap: 8px; }
 .mode-options-compact { display: flex; gap: 4px; }
 .mode-btn-compact { border: 1px solid #ff69b4; padding: 3px 6px; border-radius: 5px; background: #fff; color: #ff69b4; font-size: 12px; height: 25px; min-width: 25px; display: flex; justify-content: center; align-items: center; }
 .mode-btn-compact.active { background: #ff69b4; color: white; }
 .plan-buttons-inline { display: flex; gap: 5px; }
-.total-menu-btn-inline, .total-shopping-btn-inline { font-size: 11px; padding: 3px 8px; border-radius: 15px; height: 25px; color: white; }
+.total-menu-btn-inline, .total-shopping-btn-inline { font-size: 11px; padding: 5px 10px; border-radius: 15px; height: 29px; color: white; }
 .total-menu-btn-inline { background: #1e90ff; }
 .total-shopping-btn-inline { background: #ff9800; }
 .today-plan-section { background-color: #f7f7f7; padding: 15px; border-radius: 12px; margin-bottom: 20px; }
