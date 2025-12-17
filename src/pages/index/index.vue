@@ -50,7 +50,7 @@
                  </view>
             </view>
             <view v-else class="plan-dish-empty">
-                {{ current === 'breakfast' ? '点个元气满满的早餐吧' : '待选...' }}
+                {{ current === 'breakfast' ? '点个元气满满的早餐' : '吃好每一餐...' }}
             </view>
         </view>
     </view>
