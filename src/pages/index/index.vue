@@ -20,10 +20,6 @@
         </view>
         
         <view class="plan-buttons-inline">
-            <button class="total-history-btn-inline"
-                    @click="goToHistory">
-                📅 历史
-            </button>
             <button class="total-menu-btn-inline" 
                     @click="showTotalMenu = true"
                     :disabled="!hasPlannedFood">
@@ -317,14 +313,9 @@ export default {
       this.pickedFoods = []
       this.shoppingList = []
       uni.showToast({ title: '今日计划与历史记录已重置', icon: 'success' });
-    },
-    
-    // 跳转到历史记录页面
-    goToHistory() {
-        uni.navigateTo({
-            url: '/pages/history/history' 
-        });
     }
+    
+    // goToHistory 方法已删除
   }
 }
 </script>
@@ -419,7 +410,7 @@ export default {
     display: flex;
     gap: 5px;
 }
-.total-menu-btn-inline, .total-shopping-btn-inline, .total-history-btn-inline {
+.total-menu-btn-inline, .total-shopping-btn-inline {
     font-size: 11px;
     padding: 3px 8px;
     border-radius: 15px;
@@ -428,10 +419,7 @@ export default {
     margin: 0;
     white-space: nowrap; 
 }
-.total-history-btn-inline {
-    background: #00bcd4; /* 青色，代表时间或日历 */
-    color: white;
-}
+/* total-history-btn-inline 样式已删除 */
 .total-menu-btn-inline {
     background: #1e90ff;
     color: white;
@@ -440,7 +428,7 @@ export default {
     background: #ff9800;
     color: white;
 }
-.total-menu-btn-inline[disabled], .total-shopping-btn-inline[disabled], .total-history-btn-inline[disabled] {
+.total-menu-btn-inline[disabled], .total-shopping-btn-inline[disabled] {
     background: #ccc;
     color: #999;
 }
