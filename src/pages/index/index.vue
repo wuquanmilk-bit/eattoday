@@ -300,7 +300,7 @@ export default {
 .mode-btn-compact { border: 1px solid #ff69b4; padding: 3px 6px; border-radius: 5px; background: #fff; color: #ff69b4; font-size: 12px; height: 25px; min-width: 25px; display: flex; justify-content: center; align-items: center; }
 .mode-btn-compact.active { background: #ff69b4; color: white; }
 .plan-buttons-inline { display: flex; gap: 5px; }
-.total-menu-btn-inline, .total-shopping-btn-inline { font-size: 11px; padding: 5px 10px; border-radius: 15px; height: 29px; color: white; }
+.total-menu-btn-inline, .total-shopping-btn-inline { font-size: 9px; padding: 5px 10px; border-radius: 15px; height: 29px; color: white; }
 .total-menu-btn-inline { background: #1e90ff; }
 .total-shopping-btn-inline { background: #ff9800; }
 .today-plan-section { background-color: #f7f7f7; padding: 15px; border-radius: 12px; margin-bottom: 20px; }
