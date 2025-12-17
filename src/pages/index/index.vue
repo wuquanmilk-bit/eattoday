@@ -327,15 +327,207 @@ export default {
 .close-modal { background: #ff69b4; color: white; border: none; padding: 10px; border-radius: 5px; width: 100%; margin-top: 15px; }
 
 /* 探店内部专用样式 */
-.mall-nav { white-space: nowrap; margin-bottom: 10px; border-bottom: 1px solid #eee; }
-.m-city-tag { display: inline-block; padding: 4px 12px; font-size: 12px; margin-right: 8px; background: #f0f0f0; border-radius: 15px; }
-.m-city-tag.active { background: #9c27b0; color: white; }
-.mall-res-card { min-height: 80px; text-align: center; background: #fafafa; border-radius: 10px; padding: 15px; }
-.m-name { font-size: 20px; font-weight: bold; margin: 5px 0; }
-.m-area-tag { background: #333; color: white; font-size: 10px; padding: 2px 6px; border-radius: 4px; }
-.m-tip { color: #ff69b4; font-size: 13px; margin-top: 5px; }
-.mall-go-btn { width: 100%; background: #9c27b0; color: white; border-radius: 8px; padding: 10px; margin-top: 15px; border: none; font-weight: bold;}
+/* 基础重置 */
+* {
+    box-sizing: border-box;
+}
 
+/* 导航容器 - 现代设计 */
+.mall-nav { 
+    display: flex;
+    overflow-x: auto;
+    padding: 15px 5px 20px;
+    margin-bottom: 25px;
+    border-bottom: none;
+    gap: 10px;
+    scrollbar-width: none; /* 隐藏滚动条 */
+    -ms-overflow-style: none;
+}
+.mall-nav::-webkit-scrollbar {
+    display: none;
+}
+
+/* 城市标签 - 卡片式设计 */
+.m-city-tag { 
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 24px;
+    font-size: 15px;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: 12px;
+    border: 1px solid rgba(0,0,0,0.08);
+    color: #495057;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    white-space: nowrap;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+.m-city-tag:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    border-color: #d0d0d0;
+}
+.m-city-tag.active { 
+    background: linear-gradient(135deg, #9c27b0 0%, #7b1fa2 100%);
+    color: white;
+    border-color: #9c27b0;
+    box-shadow: 0 4px 15px rgba(156, 39, 176, 0.3);
+    font-weight: 600;
+}
+
+/* 商家卡片 - 现代化卡片设计 */
+.mall-res-card { 
+    min-height: 140px;
+    text-align: left;
+    background: white;
+    border-radius: 20px;
+    padding: 25px;
+    margin-bottom: 20px;
+    border: none;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+.mall-res-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #9c27b0, #e91e63);
+}
+.mall-res-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.12);
+}
+
+/* 商家名称 - 优雅设计 */
+.m-name { 
+    font-size: 22px;
+    font-weight: 700;
+    margin: 0 0 12px 0;
+    color: #1a1a1a;
+    line-height: 1.3;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.m-name::before {
+    content: '🏬';
+    font-size: 20px;
+}
+
+/* 区域标签 - 徽章设计 */
+.m-area-tag { 
+    background: linear-gradient(135deg, #2d3436 0%, #636e72 100%);
+    color: white;
+    font-size: 12px;
+    padding: 6px 12px;
+    border-radius: 20px;
+    display: inline-block;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* 提示信息 - 醒目设计 */
+.m-tip { 
+    color: #e91e63;
+    font-size: 14px;
+    margin: 12px 0 0 0;
+    font-weight: 600;
+    padding: 8px 12px;
+    background: linear-gradient(135deg, rgba(233, 30, 99, 0.1) 0%, rgba(156, 39, 176, 0.1) 100%);
+    border-radius: 10px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+.m-tip::before {
+    content: '🎯';
+}
+
+/* 操作按钮 - 现代化按钮 */
+.mall-go-btn { 
+    width: 100%;
+    background: linear-gradient(135deg, #9c27b0 0%, #7b1fa2 100%);
+    color: white;
+    border-radius: 14px;
+    padding: 16px;
+    margin-top: 20px;
+    border: none;
+    font-weight: 600;
+    font-size: 16px;
+    cursor: pointer;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    position: relative;
+    overflow: hidden;
+}
+.mall-go-btn::after {
+    content: '→';
+    font-size: 18px;
+    transition: transform 0.3s ease;
+}
+.mall-go-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(156, 39, 176, 0.4);
+    background: linear-gradient(135deg, #8e24aa 0%, #6a1b9a 100%);
+}
+.mall-go-btn:hover::after {
+    transform: translateX(5px);
+}
+.mall-go-btn:active {
+    transform: translateY(0);
+}
+
+/* 添加装饰元素 */
+.mall-res-card::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, rgba(156, 39, 176, 0.05) 0%, rgba(233, 30, 99, 0.05) 100%);
+    border-radius: 0 0 0 100%;
+    pointer-events: none;
+}
+
+/* 响应式调整 */
+@media (max-width: 480px) {
+    .mall-nav {
+        padding: 12px 5px 18px;
+    }
+    .m-city-tag {
+        padding: 8px 20px;
+        font-size: 14px;
+    }
+    .mall-res-card {
+        padding: 20px;
+        border-radius: 18px;
+    }
+    .m-name {
+        font-size: 20px;
+    }
+    .m-area-tag {
+        font-size: 11px;
+        padding: 5px 10px;
+    }
+    .mall-go-btn {
+        padding: 14px;
+        font-size: 15px;
+    }
+}
 /* --- 点击视觉反馈（变色及缩放） --- */
 button:active {
     transform: scale(0.96);
