@@ -20,10 +20,6 @@
         </view>
         
         <view class="plan-buttons-inline">
-            <button class="total-history-btn-inline"
-                    @click="goToHistory">
-                📅 历史
-            </button>
             <button class="total-menu-btn-inline" 
                     @click="showTotalMenu = true"
                     :disabled="!hasPlannedFood">
@@ -129,7 +125,7 @@
       
       <button class="clear-history" @click="clearHistory" :disabled="isShuffling && foodStore.history.length === 0 && !hasPlannedFood">🗑️ 重置今日</button>
 
-      <button class="mall-btn" @click="showMallModal = true" :disabled="isShuffling">🏬 去商场吃什么？</button>
+      <button class="mall-btn-full" @click="showMallModal = true" :disabled="isShuffling">🌍 全国 15 城商场探店</button>
     </view>
 
     <view class="shopping-modal-overlay" v-if="shoppingList.length" @click="shoppingList=[]">
@@ -138,7 +134,7 @@
         <view class="materials-list">
           <view v-for="m in shoppingList" :key="m" class="materials-item">• {{ m }}</view>
         </view>
-        <button class="close-modal" @click="shoppingList=[]">关闭</button>
+        <button class="close-modal" @click="shoppingList=[]">确认并关闭</button>
       </view>
     </view>
     
@@ -148,7 +144,6 @@
         <view class="total-menu-content">
             <view v-for="(planDishes, type) in foodStore.todayPlan" :key="type" class="menu-type-block">
                 <view class="menu-type-title">{{ getPlanTypeLabel(type) }}：</view> 
-                
                 <view class="food-list-block" v-if="planDishes && planDishes.length > 0">
                     <view v-for="(dish, index) in planDishes" :key="index" class="plan-food-item">
                         <text class="food-name-display"> - {{ dish.name }}</text>
@@ -177,22 +172,25 @@
     </view>
 
     <view class="shopping-modal-overlay" v-if="showMallModal" @click="showMallModal = false">
-      <view class="shopping-modal mall-modal" @click.stop>
-        <view class="h3" style="color: #9c27b0; text-align: center;">🏬 附近的餐饮店</view>
-        
-        <view class="mall-display-area">
-            <view v-if="mallResult" class="mall-result-text">{{ mallResult }}</view>
-            <view v-else class="mall-placeholder-text">今天在商场换换口味？</view>
+        <view class="shopping-modal mall-modal" @click.stop>
+            <view class="h3" style="text-align: center;">🌍 全国美食探店</view>
+            <scroll-view scroll-x class="mall-nav">
+                <view v-for="city in Object.keys(mallData)" :key="city" 
+                      :class="['m-city-tag', { active: selectedCity === city }]"
+                      @click="selectedCity = city">{{ city }}</view>
+            </scroll-view>
+            <view class="mall-res-card">
+                <view v-if="mallResult.name">
+                    <view class="m-area-tag">{{ mallResult.area }}</view>
+                    <view class="m-name">{{ mallResult.name }}</view>
+                    <view class="m-tip">✨ 推荐：{{ mallResult.tip }}</view>
+                </view>
+                <view v-else style="color:#999; padding:20px; text-align:center;">请选择城市并随机</view>
+            </view>
+            <button @click="pickMall" class="mall-go-btn">🎲 随机选一家</button>
+            <button @click="showMallModal = false" class="close-modal" style="background:#999; margin-top:10px;">返回</button>
         </view>
-
-        <button class="pick mall-pick-btn" @click="pickMallShop" :disabled="isMallShuffling">
-            {{ isMallShuffling ? '正在挑选餐厅...' : '🎲 随机一家店' }}
-        </button>
-        
-        <button class="close-modal" @click="showMallModal = false" style="background: #999; margin-top: 10px;">返回</button>
-      </view>
     </view>
-
   </view>
 </template>
 
@@ -206,28 +204,29 @@ export default {
   },
   data() {
     return {
-      tabs: [
-        { key: 'breakfast', label: '早餐' },
-        { key: 'lunch', label: '午餐' },
-        { key: 'dinner', label: '晚餐' }
-      ],
+      tabs: [{ key: 'breakfast', label: '早餐' }, { key: 'lunch', label: '午餐' }, { key: 'dinner', label: '晚餐' }],
       current: 'breakfast',
-      pickedFoods: [], 
-      shoppingList: [],
-      isShuffling: false, 
-      shufflingText: '',
-      currentDate: '', 
-      showTotalShoppingList: false,
-      showTotalMenu: false,
-      dinerCount: 1,
-      // 新增：商场模式相关数据
-      showMallModal: false,
-      isMallShuffling: false,
-      mallResult: '',
-      mallShops: [
-          '肯德基', '麦当劳', '海底捞', '太二酸菜鱼', '萨莉亚', '外婆家', 
-          '西贝莜面村', '必胜客', '汉堡王', '费大厨辣椒炒肉', '茶颜悦色', '喜茶'
-      ]
+      pickedFoods: [], shoppingList: [], isShuffling: false, shufflingText: '', currentDate: '',
+      showTotalShoppingList: false, showTotalMenu: false, dinerCount: 1,
+      // 商场功能新增
+      showMallModal: false, selectedCity: '北京', mallResult: { name: '', tip: '', area: '' },
+      mallData: {
+          '北京': [{ name: '四季民福', area: '故宫', tip: '烤鸭' }, { name: '胡大', area: '簋街', tip: '小龙虾' }],
+          '上海': [{ name: '费大厨', area: '正大广场', tip: '辣椒炒肉' }],
+          '杭州': [{ name: '新白鹿', area: 'in77', tip: '蛋黄鸡翅' }],
+          '广州': [{ name: '陶陶居', area: '上下九', tip: '虾饺' }],
+          '成都': [{ name: '陶德砂锅', area: '春熙路', tip: '蒜蓉排骨' }],
+          '深圳': [{ name: '陈鹏鹏', area: '万象天地', tip: '卤鹅' }],
+          '西安': [{ name: '长安大牌档', area: '小寨', tip: '葫芦鸡' }],
+          '南京': [{ name: '南京大牌档', area: '老门东', tip: '美龄粥' }],
+          '长沙': [{ name: '文和友', area: '五一广场', tip: '口味虾' }],
+          '武汉': [{ name: '靓靓蒸虾', area: '江汉路', tip: '油焖大虾' }],
+          '重庆': [{ name: '珮姐火锅', area: '洪崖洞', tip: '毛肚' }],
+          '苏州': [{ name: '松鹤楼', area: '观前街', tip: '松鼠鳜鱼' }],
+          '天津': [{ name: '狗不理', area: '水上公园', tip: '包子' }],
+          '厦门': [{ name: '临家', area: '中山路', tip: '姜母鸭' }],
+          '大连': [{ name: '品海楼', area: '老虎滩', tip: '脆皮虾' }]
+      }
     }
   },
   computed: {
@@ -241,291 +240,108 @@ export default {
         for (const type in this.foodStore.todayPlan) {
             const dishes = this.foodStore.todayPlan[type];
             if (dishes && dishes.length) {
-                dishes.forEach(item => {
-                    if (item.materials && item.materials.length) {
-                        materials.push(...item.materials);
-                    }
-                });
+                dishes.forEach(item => { if (item.materials) materials.push(...item.materials); });
             }
         }
-        const uniqueMaterials = [...new Set(materials)];
-        return uniqueMaterials.sort();
+        return [...new Set(materials)].sort();
     }
   },
-  mounted() {
-    this.updateDate();
-  },
+  mounted() { this.updateDate(); },
   methods: {
     updateDate() {
         const date = new Date();
-        const year = date.getFullYear();
-        const month = date.getMonth() + 1;
-        const day = date.getDate();
         const weekDays = ['日', '一', '二', '三', '四', '五', '六'];
-        const dayOfWeek = weekDays[date.getDay()];
-        this.currentDate = `${year}年${month}月${day}日 星期${dayOfWeek}`;
+        this.currentDate = `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日 星期${weekDays[date.getDay()]}`;
     },
-    
-    getLevelCount(level) {
-      const map = { '低': 1, '中': 2, '高': 3, '极高': 4, 'default': 1 };
-      return map[level] || map['default'];
-    },
-    
-    getPlanTypeLabel(type) {
-      const labels = {
-        'breakfast': '早餐',
-        'lunch': '午餐',
-        'dinner': '晚餐',
-      };
-      return labels[type] || type;
-    },
-
+    getLevelCount(l) { return { '低': 1, '中': 2, '高': 3, '极高': 4 }[l] || 1; },
+    getPlanTypeLabel(t) { return { 'breakfast': '早餐', 'lunch': '午餐', 'dinner': '晚餐' }[t] || t; },
     addToPlan() {
-      if (this.pickedFoods.length === 0) {
-        uni.showToast({ title: '请先随机抽取菜品', icon: 'none' });
-        return;
-      }
+      if (this.pickedFoods.length === 0) return;
       this.foodStore.addFoodToPlan(this.current, this.pickedFoods); 
-      uni.showToast({ title: `已将 ${this.pickedFoods.length} 道菜品选定为今日菜单`, icon: 'success' });
+      uni.showToast({ title: '已选定', icon: 'success' });
       this.pickedFoods = [];
     },
-
     pickFood() {
       if (this.isShuffling) return;
-      
       const list = this.foodStore.menu[this.current] || [];
-      if (list.length < this.dinerCount) {
-          uni.showToast({ title: `菜单中菜品不足 ${this.dinerCount} 道，请减少人数或添加菜品`, icon: 'none' });
-          return;
-      }
-      
-      this.isShuffling = true;
-      this.pickedFoods = []; 
-
+      if (list.length < this.dinerCount) return;
+      this.isShuffling = true; this.pickedFoods = []; 
       let count = 0;
       const shuffleInterval = setInterval(() => {
         const randomItem = list[Math.floor(Math.random() * list.length)];
-        this.shufflingText = randomItem ? randomItem.name : '思考中...';
-        count++;
-
-        if (count >= 15) { 
+        this.shufflingText = randomItem ? randomItem.name : '...';
+        if (++count >= 15) { 
           clearInterval(shuffleInterval);
-          this.shufflingText = '';
           this.pickedFoods = this.foodStore.pickFood(this.current, this.dinerCount);
           this.isShuffling = false;
-          
-          if (this.pickedFoods.length === 0) {
-              uni.showToast({ title: '菜单为空，请添加菜品', icon: 'error' });
-          }
         }
       }, 100);
     },
-
-    // 新增：商场随机抽取逻辑
-    pickMallShop() {
-      if (this.isMallShuffling) return;
-      this.isMallShuffling = true;
-      let count = 0;
-      const timer = setInterval(() => {
-        this.mallResult = this.mallShops[Math.floor(Math.random() * this.mallShops.length)];
-        count++;
-        if (count > 15) {
-          clearInterval(timer);
-          this.isMallShuffling = false;
-        }
-      }, 80);
-    },
-    
-    switchTab(key) {
-      this.current = key
-      this.pickedFoods = [] 
-      this.shoppingList = []
-      this.isShuffling = false
-    },
-    
+    switchTab(k) { this.current = k; this.pickedFoods = []; this.isShuffling = false; },
     generateShoppingList() {
-      if (this.pickedFoods.length === 0) return
-      
-      const materials = [];
-      this.pickedFoods.forEach(dish => {
-          materials.push(...dish.materials);
-      });
-      
-      const uniqueMaterials = [...new Set(materials)];
-      this.shoppingList = uniqueMaterials;
+        if (this.pickedFoods.length === 0) return;
+        this.shoppingList = [...new Set(this.pickedFoods.flatMap(d => d.materials))];
     },
-    
-    clearHistory() {
-      this.foodStore.clearHistory() 
-      this.pickedFoods = []
-      this.shoppingList = []
-      uni.showToast({ title: '今日计划与历史记录已重置', icon: 'success' });
-    },
-    
-    goToHistory() {
-        uni.navigateTo({
-            url: '/pages/history/history' 
-        });
-    }
+    clearHistory() { this.foodStore.clearHistory(); this.pickedFoods = []; },
+    pickMall() { this.mallResult = this.mallData[this.selectedCity][Math.floor(Math.random() * this.mallData[this.selectedCity].length)]; }
   }
 }
 </script>
 
 <style>
-/* 容器和基础样式 */
-.container {
-  max-width: 420px; 
-  margin: 0 auto; 
-  padding: 0 15px 30px; 
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-}
-
-.header-section {
-    display: flex; 
-    flex-direction: column; 
-    align-items: center; 
-    margin-bottom: 20px;
-}
+/* --- 您原有的样式 --- */
+.container { max-width: 420px; margin: 0 auto; padding: 0 15px 30px; }
+.header-section { display: flex; flex-direction: column; align-items: center; margin-bottom: 20px; }
 .h1 { font-size: 28px; font-weight: 700; color: #ff69b4; margin-bottom: 5px; }
 .current-date { font-size: 14px; color: #666; margin-bottom: 10px; }
-
-.top-control-bar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px 0;
-    margin-bottom: 15px;
-    border-bottom: 1px solid #f0f0f0;
-}
-
-.diner-mode-selector-compact {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-.diner-mode-selector-compact .mode-title {
-    font-size: 14px;
-    color: #333;
-    font-weight: bold;
-    white-space: nowrap;
-}
-.mode-options-compact {
-    display: flex;
-    gap: 4px; 
-}
-.mode-btn-compact {
-    border: 1px solid #ff69b4;
-    padding: 3px 6px; 
-    border-radius: 5px; 
-    background: #fff;
-    color: #ff69b4;
-    font-size: 12px;
-    line-height: normal;
-    transition: all 0.2s;
-    height: 25px; 
-    min-width: 25px; 
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-.mode-btn-compact.active {
-    background: #ff69b4;
-    color: white;
-    box-shadow: 0 1px 3px rgba(255, 105, 180, 0.5);
-}
-.mode-btn-compact[disabled] { opacity: 0.5; background: #eee; color: #999; }
-
+.top-control-bar { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #f0f0f0; margin-bottom: 15px; }
+.diner-mode-selector-compact { display: flex; align-items: center; gap: 8px; }
+.mode-options-compact { display: flex; gap: 4px; }
+.mode-btn-compact { border: 1px solid #ff69b4; padding: 3px 6px; border-radius: 5px; background: #fff; color: #ff69b4; font-size: 12px; height: 25px; min-width: 25px; display: flex; justify-content: center; align-items: center; }
+.mode-btn-compact.active { background: #ff69b4; color: white; }
 .plan-buttons-inline { display: flex; gap: 5px; }
-.total-menu-btn-inline, .total-shopping-btn-inline, .total-history-btn-inline {
-    font-size: 11px;
-    padding: 3px 8px;
-    border-radius: 15px;
-    line-height: normal;
-    height: 25px;
-    margin: 0;
-    white-space: nowrap; 
-}
-.total-history-btn-inline { background: #00bcd4; color: white; }
-.total-menu-btn-inline { background: #1e90ff; color: white; }
-.total-shopping-btn-inline { background: #ff9800; color: white; }
-.total-menu-btn-inline[disabled], .total-shopping-btn-inline[disabled], .total-history-btn-inline[disabled] { background: #ccc; color: #999; }
-
-.today-plan-section {
-    background-color: #f7f7f7;
-    padding: 10px 15px 15px 15px; 
-    border-radius: 12px;
-    margin-bottom: 20px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-}
-.h2-plan-title { font-size: 16px; font-weight: bold; color: #444; margin-bottom: 8px; padding-top: 5px; }
-.plan-list-single-meal { background-color: white; padding: 10px; border-radius: 8px; border: 1px solid #eee; min-height: 40px; }
-.plan-dish-item { font-size: 14px; font-weight: 500; color: #333; padding: 3px 0; text-align: center; }
-.plan-dish-empty { color: #999; text-align: center; padding: 5px 0; font-size: 14px; }
-
-.tabs { display: flex; justify-content: center; gap: 10px; margin: 20px 0; }
-.tabs button {
-  flex: 1; border: none; padding: 8px 16px; border-radius: 20px;
-  background: #ffd1dc; color: #333; transition: background 0.2s, transform 0.1s;
-  line-height: normal; font-size: 14px;
-}
+.total-menu-btn-inline, .total-shopping-btn-inline { font-size: 11px; padding: 3px 8px; border-radius: 15px; height: 25px; color: white; }
+.total-menu-btn-inline { background: #1e90ff; }
+.total-shopping-btn-inline { background: #ff9800; }
+.today-plan-section { background-color: #f7f7f7; padding: 15px; border-radius: 12px; margin-bottom: 20px; }
+.h2-plan-title { font-size: 16px; font-weight: bold; color: #444; margin-bottom: 8px; }
+.plan-list-single-meal { background-color: white; padding: 10px; border-radius: 8px; min-height: 40px; }
+.plan-dish-item { font-size: 14px; text-align: center; color: #333; }
+.tabs { display: flex; gap: 10px; margin: 20px 0; }
+.tabs button { flex: 1; border: none; padding: 8px; border-radius: 20px; background: #ffd1dc; color: #333; font-size: 14px; }
 .tabs button.active { background: #ff69b4; color: white; }
-.tabs button:active { transform: scale(0.98); }
-.tabs button[disabled] { background: #eee; color: #999; }
-
-.card-wrapper { position: relative; min-height: 300px; }
-.card {
-    position: relative; margin-bottom: 15px; display: flex;
-    flex-direction: column; justify-content: center;
-    min-height: 250px; background: white; border-radius: 15px; box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
-    padding: 20px; text-align: center;
-}
-.food-name { font-size: 28px; font-weight: bold; color: #333; margin-bottom: 15px; transition: color 0.3s; }
-.shuffling-card .food-name { color: #ff69b4; animation: blink 1s step-end infinite; }
-@keyframes blink { 50% { opacity: 0.5; } }
-
+.card { background: white; border-radius: 15px; box-shadow: 0 8px 15px rgba(0,0,0,0.1); padding: 20px; text-align: center; margin-bottom: 15px; min-height: 250px; display: flex; flex-direction: column; justify-content: center; }
+.food-name { font-size: 28px; font-weight: bold; margin-bottom: 15px; }
 .nutrition-indicators { display: flex; justify-content: space-around; padding: 10px 0; border-top: 1px solid #eee; border-bottom: 1px solid #eee; margin-bottom: 15px; }
-.indicator-item { text-align: center; flex: 1; }
-.icon-label { font-size: 12px; color: #999; margin-bottom: 5px; }
-.icon-display { font-size: 18px; }
-.materials-title { font-size: 14px; font-weight: bold; color: #ff69b4; margin-bottom: 8px; }
-.materials-list { display: flex; flex-wrap: wrap; justify-content: center; }
-.materials-item { font-size: 13px; color: #666; margin: 3px 5px; background: #f5f5f5; padding: 2px 6px; border-radius: 4px; }
-
 .btn-group { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; margin-top: 20px; }
-.btn-group button { flex: 1 1 48%; border: none; padding: 12px 0; border-radius: 10px; color: white; font-size: 13px; font-weight: bold; transition: transform 0.1s ease; line-height: normal; }
-.btn-group button:active { transform: scale(0.98); }
-.btn-group button[disabled] { background: #ccc !important; }
+.btn-group button { flex: 1 1 48%; border: none; padding: 12px 0; border-radius: 10px; color: white; font-size: 13px; font-weight: bold; }
+.pick { background: #4caf50; } .add-to-plan { background: #1e90ff; } .shopping { background: #ff9800; } .clear-history { background: #f44336; }
+.mall-btn-full { background: #9c27b0 !important; flex: 1 1 100% !important; margin-top: 5px; }
 
-.btn-group .pick { background: #4caf50; } 
-.btn-group .add-to-plan { background: #1e90ff; } 
-.btn-group .shopping { background: #ff9800; } 
-.btn-group .clear-history { background: #f44336; } 
+/* 弹窗核心样式还原 */
+.shopping-modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 1000; }
+.shopping-modal { background: white; padding: 20px; border-radius: 10px; width: 85%; max-height: 70vh; overflow-y: auto; }
+.menu-type-block { margin-bottom: 10px; padding: 8px; border: 1px solid #eee; border-radius: 6px; }
+.menu-type-title { font-weight: bold; color: #1e90ff; margin-bottom: 5px; display: block; }
+.materials-item { display: inline-block; margin: 3px; background: #f5f5f5; padding: 2px 8px; border-radius: 4px; font-size: 12px; }
+.close-modal { background: #ff69b4; color: white; border: none; padding: 10px; border-radius: 5px; width: 100%; margin-top: 15px; }
 
-/* 新增：商场入口按钮样式 */
-.btn-group .mall-btn { background: #9c27b0; flex: 1 1 100%; margin-top: 4px; }
+/* 探店内部专用样式 */
+.mall-nav { white-space: nowrap; margin-bottom: 10px; border-bottom: 1px solid #eee; }
+.m-city-tag { display: inline-block; padding: 4px 12px; font-size: 12px; margin-right: 8px; background: #f0f0f0; border-radius: 15px; }
+.m-city-tag.active { background: #9c27b0; color: white; }
+.mall-res-card { min-height: 80px; text-align: center; background: #fafafa; border-radius: 10px; padding: 15px; }
+.m-name { font-size: 20px; font-weight: bold; margin: 5px 0; }
+.m-area-tag { background: #333; color: white; font-size: 10px; padding: 2px 6px; border-radius: 4px; }
+.m-tip { color: #ff69b4; font-size: 13px; margin-top: 5px; }
+.mall-go-btn { width: 100%; background: #9c27b0; color: white; border-radius: 8px; padding: 10px; margin-top: 15px; border: none; font-weight: bold;}
 
-.shopping-modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.5); display: flex; justify-content: center; align-items: center; z-index: 1000; }
-.shopping-modal { background: white; padding: 20px; border-radius: 10px; max-width: 80%; box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3); text-align: left; max-height: 70vh; overflow-y: auto; }
-.shopping-modal .h3 { font-size: 18px; font-weight: bold; color: #ff69b4; margin-bottom: 10px; }
-.shopping-modal .materials-list { justify-content: flex-start; margin-bottom: 15px; }
-.shopping-modal .materials-item { margin: 5px 0; background: #eee; padding: 4px 8px; border-radius: 4px; }
+/* --- 点击视觉反馈（变色及缩放） --- */
+button:active {
+    transform: scale(0.96);
+    filter: brightness(0.85);
+    transition: all 0.1s;
+}
 
-/* 新增：商场弹窗内容样式 */
-.mall-modal { text-align: center; width: 300px; padding: 30px 20px; }
-.mall-display-area { height: 100px; display: flex; align-items: center; justify-content: center; margin: 20px 0; }
-.mall-result-text { font-size: 32px; font-weight: bold; color: #333; }
-.mall-placeholder-text { font-size: 16px; color: #999; }
-.mall-pick-btn { width: 100%; height: 45px; }
-
-.total-list { flex-direction: column; align-items: flex-start; }
-.total-list .materials-item { width: 100%; }
-.no-data { color: #999; padding: 20px; text-align: center; }
-.close-modal { background: #ff69b4; color: white; border: none; padding: 8px 15px; border-radius: 5px; font-size: 14px; width: 100%; margin-top: 15px; }
-
-.total-menu-content { padding: 10px 0; }
-.menu-type-block { margin-bottom: 10px; padding: 8px; border-radius: 6px; border: 1px solid #f0f0f0; }
-.menu-type-title { font-size: 16px; font-weight: bold; color: #1e90ff; margin-bottom: 5px; display: block; width: 100%; }
-.plan-food-item { font-size: 15px; color: #333; padding: 2px 0; font-weight: 500; }
-.plan-food-item .food-name-display { display: block; padding: 2px 0; }
-.no-food { font-size: 14px; color: #999; }
+@keyframes blink { 50% { opacity: 0.5; } }
 </style>
