@@ -119,7 +119,6 @@ const defaultMenu = {
 
 const initialMenu = _loadMenuFromStorage() || defaultMenu;
 const initialHistory = JSON.parse(storage.getItem('today-food-history') || '[]');
-// 【新增】加载历史菜单记录
 const initialDailyHistory = JSON.parse(storage.getItem('daily-menu-history') || '[]');
 
 
@@ -127,36 +126,35 @@ const initialDailyHistory = JSON.parse(storage.getItem('daily-menu-history') || 
 export const useFoodStore = defineStore('food', {
   state: () => ({
     menu: initialMenu,
-    history: initialHistory, // 存储所有被选过的菜名（用于去重）
-    recentHistory: [], // 存储最近被随机到的菜名（用于短期去重）
+    history: initialHistory, 
+    recentHistory: [], 
     todayPlan: JSON.parse(storage.getItem('today-plan') || '{"breakfast":[], "lunch":[], "dinner":[]}'),
-    // 【新增状态】: 存储每日已确定的菜单历史记录
     dailyMenuHistory: initialDailyHistory, 
   }),
 
   actions: {
-    // 【修改】: 将菜品数组添加到今日菜单计划，并同步保存到历史记录
+    
+    // 选定菜品时，自动存档/更新今日计划
     addFoodToPlan(type, foodItems) {
         if (Array.isArray(foodItems) && this.menu[type]) {
-            this.todayPlan[type] = foodItems; // 存储数组
+            this.todayPlan[type] = foodItems; 
             storage.setItem('today-plan', this.todayPlan);
             
-            // 每次更新 plan 时，同步更新 dailyMenuHistory
+            // 自动触发存档
             this.saveDailyPlanToHistory();
         }
     },
     
-    // 【新增 Action】: 将 todayPlan 存入 dailyMenuHistory
+    // 核心存档逻辑: 将 todayPlan 存入 dailyMenuHistory
     saveDailyPlanToHistory() {
         const dateKey = _getCurrentDateKey();
         
-        // 检查今日菜单是否为空
         const hasFood = this.todayPlan.breakfast.length > 0 || 
                         this.todayPlan.lunch.length > 0 || 
                         this.todayPlan.dinner.length > 0;
         
         if (!hasFood) {
-            // 如果今日计划为空，则从历史中删除该日记录（如果存在）
+            // 如果今日计划为空，则从历史中删除该日记录
             this.dailyMenuHistory = this.dailyMenuHistory.filter(item => item.date !== dateKey);
         } else {
             // 构造或更新今日的菜单记录
@@ -166,6 +164,7 @@ export const useFoodStore = defineStore('food', {
             const todayRecord = {
                 date: dateKey,
                 plan: {
+                    // 仅保存菜品名称，节省空间
                     breakfast: this.todayPlan.breakfast.map(d => d.name),
                     lunch: this.todayPlan.lunch.map(d => d.name),
                     dinner: this.todayPlan.dinner.map(d => d.name),
@@ -185,13 +184,12 @@ export const useFoodStore = defineStore('food', {
         storage.setItem('daily-menu-history', this.dailyMenuHistory);
     },
     
-    // 【新增 Action】: 从历史记录中复用某一天的菜单
+    // 从历史记录中复用某一天的菜单
     reuseDailyPlan(dateKey) {
         const record = this.dailyMenuHistory.find(item => item.date === dateKey);
         if (record) {
             const newPlan = { breakfast: [], lunch: [], dinner: [] };
 
-            // 遍历历史记录中的菜名，从主菜单中找到完整的菜品对象
             const menuLookup = (name) => {
                 for (const type in this.menu) {
                     const dish = this.menu[type].find(d => d.name === name);
@@ -211,12 +209,12 @@ export const useFoodStore = defineStore('food', {
 
             this.todayPlan = newPlan;
             storage.setItem('today-plan', this.todayPlan);
+            this.saveDailyPlanToHistory(); 
             return true;
         }
         return false;
     },
 
-    // 【修改】：抽取多个菜品，并接受 count 参数
     pickFood(type, count = 1) {
       const list = this.menu[type] || []
       if (list.length === 0) return []
@@ -228,18 +226,14 @@ export const useFoodStore = defineStore('food', {
       let masterList = [...list];
       
       while (picked.length < actualCount && masterList.length > 0) {
-          // 尝试从未被最近随机到的菜品中选择
           let availableCandidates = masterList.filter(item => !usedNames.has(item.name));
           let choice;
 
           if (availableCandidates.length > 0) {
-             // 从可选项中随机选择
              const randomIndex = Math.floor(Math.random() * availableCandidates.length);
              choice = availableCandidates[randomIndex];
-             // 从 masterList 中移除已选中的菜品，确保不重复
              masterList.splice(masterList.findIndex(i => i.name === choice.name), 1);
           } else {
-             // 如果所有菜品都在 recentHistory 中，则从剩余的 masterList 中随机选择
              const tempIndex = Math.floor(Math.random() * masterList.length);
              choice = masterList[tempIndex];
              masterList.splice(tempIndex, 1);
@@ -248,7 +242,6 @@ export const useFoodStore = defineStore('food', {
           if (choice) {
               picked.push(choice);
           } else {
-              // 理论上不会发生，但以防万一
               break; 
           }
       }
@@ -267,20 +260,22 @@ export const useFoodStore = defineStore('food', {
       return picked
     },
     
-    // 【修改】清空历史记录：清空历史、今日计划，并同步历史记录
-    clearHistory() {
+    // 【修改】清空所有数据逻辑
+    clearAllData() {
+      // 1. 清空随机抽取历史
       this.history = []
       this.recentHistory = []
       storage.removeItem('today-food-history')
       
+      // 2. 清空今日计划
       this.todayPlan = {"breakfast":[], "lunch":[], "dinner":[]};
       storage.removeItem('today-plan');
       
-      // 清空今日计划后，更新历史记录 (如果清空的是当日记录)
-      this.saveDailyPlanToHistory(); 
+      // 3. 清空每日菜单历史
+      this.dailyMenuHistory = [];
+      storage.removeItem('daily-menu-history');
     },
     
-    // 添加菜品到菜单
     addFoodItem(type, name, materials, nutrition, tags) {
       if (!this.menu[type]) {
         this.menu[type] = [];
@@ -293,7 +288,6 @@ export const useFoodStore = defineStore('food', {
       _saveMenuToStorage(this.menu);
     },
 
-    // 从菜单中删除菜品
     removeFoodItem(type, name) {
       if (this.menu[type]) {
         this.menu[type] = this.menu[type].filter(item => item.name !== name);
@@ -301,7 +295,6 @@ export const useFoodStore = defineStore('food', {
       }
     },
     
-    // 重置菜单为默认菜单
     resetMenu() {
       this.menu = defaultMenu;
       _saveMenuToStorage(this.menu);

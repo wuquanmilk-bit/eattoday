@@ -1,14 +1,14 @@
-
 {
-  "pages":[
-    {"path":"pages/index/index","style":{"navigationBarTitleText":"今天吃什么","navigationBarTextStyle":"white","navigationBarBackgroundColor":"#ff69b4","backgroundColor":"#fff7fb"}},
-    {"path":"pages/settings/settings","style":{"navigationBarTitleText":"菜单管理","navigationBarTextStyle":"white","navigationBarBackgroundColor":"#ff69b4","backgroundColor":"#fff7fb"}}
-  ],
-  "globalStyle":{
-    "navigationBarTextStyle":"white",
-    "navigationBarTitleText":"今天吃什么",
-    "navigationBarBackgroundColor":"#ff69b4",
-    "backgroundColor":"#fff7fb"
-  },
-  "uniIdRouter":{}
+  "pages":[
+    {"path":"pages/index/index","style":{"navigationBarTitleText":"今天吃什么","navigationBarTextStyle":"white","navigationBarBackgroundColor":"#ff69b4","backgroundColor":"#fff7fb"}},
+    {"path":"pages/settings/settings","style":{"navigationBarTitleText":"菜单管理","navigationBarTextStyle":"white","navigationBarBackgroundColor":"#ff69b4","backgroundColor":"#fff7fb"}},
+    {"path":"pages/history/history","style":{"navigationBarTitleText":"历史菜单","navigationBarTextStyle":"white","navigationBarBackgroundColor":"#ff69b4","backgroundColor":"#fff7fb"}}
+  ],
+  "globalStyle":{
+    "navigationBarTextStyle":"white",
+    "navigationBarTitleText":"今天吃什么",
+    "navigationBarBackgroundColor":"#ff69b4",
+    "backgroundColor":"#fff7fb"
+  },
+  "uniIdRouter":{}
 }
